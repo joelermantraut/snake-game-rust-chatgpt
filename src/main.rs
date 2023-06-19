@@ -112,16 +112,6 @@ impl Snake {
         }
     }
 
-    fn check_collision(&mut self) {
-        let (head_x, head_y) = self.body[0];
-
-        /*
-        if head_x < 0.0 || head_x >= WINDOW_WIDTH || head_y < 0.0 || head_y >= WINDOW_HEIGHT {
-            self.restart_game();
-        }
-        */
-    }
-
     fn check_collision_with_food(&mut self, food: &mut Food) {
         let (head_x, head_y) = self.body[0];
         let food_x = food.position.0;
@@ -135,7 +125,22 @@ impl Snake {
             food.respawn(WINDOW_WIDTH, WINDOW_HEIGHT);
         }
     }
-    
+
+    fn check_collision_with_self(&self) -> bool {
+        let (head_x, head_y) = self.body[0];
+
+        // Verificar si la cabeza colisiona con alguna parte del cuerpo,
+        // excluyendo la cabeza misma
+        if (self.body.len() < 5) {return false;}
+
+        for &(x, y) in self.body.iter().skip(1) {
+            if (x, y) == (head_x, head_y) {
+                return true;
+            }
+        }
+
+        return false;
+    }
 
     fn restart_game(&mut self) {
         self.body = vec![(0.0, 0.0)];
@@ -192,6 +197,13 @@ fn main() {
         if let Some(update_args) = event.update_args() {
             game.snake.update(update_args.dt, WINDOW_WIDTH, WINDOW_HEIGHT);
             game.snake.check_collision_with_food(&mut game.food);
+            if game.snake.check_collision_with_self() {
+                // Reiniciar el juego
+                game = Game {
+                    snake: Snake::new(),
+                    food: Food::new(),
+                };
+            }
         }
 
         window.draw_2d(&event, |context, graphics, _device| {
