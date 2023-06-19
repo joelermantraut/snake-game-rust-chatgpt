@@ -132,7 +132,7 @@ impl Snake {
             && (head_y >= food_y - collision_margin && head_y <= food_y + collision_margin)
         {
             self.grow();
-            food.respawn();
+            food.respawn(WINDOW_WIDTH, WINDOW_HEIGHT);
         }
     }
     
@@ -158,11 +158,12 @@ impl Food {
         }
     }
 
-    fn respawn(&mut self) {
+    fn respawn(&mut self, window_width: f64, window_height: f64) {
         let mut rng = rand::thread_rng();
-        let x: f64 = rng.gen_range(0.0..WINDOW_WIDTH);
-        let y: f64 = rng.gen_range(0.0..WINDOW_HEIGHT);
-
+        let max_x = (window_width / GRID_SIZE - 1.0) as i32;
+        let max_y = (window_height / GRID_SIZE - 1.0) as i32;
+        let x = rng.gen_range(0..=max_x) as f64 * GRID_SIZE;
+        let y = rng.gen_range(0..=max_y) as f64 * GRID_SIZE;
         self.position = (x, y);
     }
 }
@@ -175,7 +176,7 @@ fn main() {
 
     let mut game = Game::new();
 
-    game.food.respawn();
+    game.food.respawn(WINDOW_WIDTH, WINDOW_HEIGHT);
 
     while let Some(event) = window.next() {
         if let Some(Button::Keyboard(key)) = event.press_args() {
