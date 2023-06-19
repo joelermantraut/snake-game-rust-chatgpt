@@ -76,7 +76,7 @@ impl Snake {
         }
     }
 
-    fn update(&mut self, dt: f64) {
+    fn update(&mut self, dt: f64, window_width: f64, window_height: f64) {
         self.accumulated_dt += dt;
 
         if self.accumulated_dt >= self.speed {
@@ -89,19 +89,37 @@ impl Snake {
                 Direction::Left => (head_x - GRID_SIZE, head_y),
                 Direction::Right => (head_x + GRID_SIZE, head_y),
             };
-            self.body.insert(0, new_head);
-            self.body.pop();
 
-            self.check_collision();
+            // Verificar si la nueva posición está fuera de los límites
+            let (new_head_x, new_head_y) = new_head;
+            let new_head_x = if new_head_x < 0.0 {
+                window_width - GRID_SIZE
+            } else if new_head_x >= window_width {
+                0.0
+            } else {
+                new_head_x
+            };
+            let new_head_y = if new_head_y < 0.0 {
+                window_height - GRID_SIZE
+            } else if new_head_y >= window_height {
+                0.0
+            } else {
+                new_head_y
+            };
+
+            self.body.insert(0, (new_head_x, new_head_y));
+            self.body.pop();
         }
     }
 
     fn check_collision(&mut self) {
         let (head_x, head_y) = self.body[0];
 
+        /*
         if head_x < 0.0 || head_x >= WINDOW_WIDTH || head_y < 0.0 || head_y >= WINDOW_HEIGHT {
             self.restart_game();
         }
+        */
     }
 
     fn check_collision_with_food(&mut self, food: &mut Food) {
@@ -171,7 +189,7 @@ fn main() {
         }
 
         if let Some(update_args) = event.update_args() {
-            game.snake.update(update_args.dt);
+            game.snake.update(update_args.dt, WINDOW_WIDTH, WINDOW_HEIGHT);
             game.snake.check_collision_with_food(&mut game.food);
         }
 
