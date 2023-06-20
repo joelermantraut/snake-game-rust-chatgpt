@@ -3,6 +3,7 @@ extern crate rand;
 
 use piston_window::*;
 use rand::Rng;
+use std::time::Instant;
 
 const GRID_SIZE: f64 = 20.0;
 const WINDOW_WIDTH: f64 = 640.0;
@@ -12,6 +13,8 @@ const INITIAL_SNAKE_SPEED: f64 = 0.1;  // Velocidad de la serpiente
 struct Game {
     snake: Snake,
     food: Food,
+    game_over: bool,
+    game_over_time: Option<Instant>,
 }
 
 struct Snake {
@@ -38,7 +41,13 @@ impl Game {
         Game {
             snake: Snake::new(),
             food: Food::new(),
+            game_over: false,
+            game_over_time: None,
         }
+    }
+
+    fn draw_game_over(&self, context: Context, graphics: &mut G2d) {
+        println!("Game Over");
     }
 }
 
@@ -131,7 +140,7 @@ impl Snake {
 
         // Verificar si la cabeza colisiona con alguna parte del cuerpo,
         // excluyendo la cabeza misma
-        if (self.body.len() < 5) {return false;}
+        if self.body.len() < 5 {return false;}
 
         for &(x, y) in self.body.iter().skip(1) {
             if (x, y) == (head_x, head_y) {
@@ -199,10 +208,14 @@ fn main() {
             game.snake.check_collision_with_food(&mut game.food);
             if game.snake.check_collision_with_self() {
                 // Reiniciar el juego
+                /*
                 game = Game {
                     snake: Snake::new(),
                     food: Food::new(),
                 };
+                */
+                game.game_over = true;
+                game.game_over_time = Some(Instant::now());
             }
         }
 
@@ -242,8 +255,18 @@ fn main() {
                         graphics,
                     );
                 }
-            }
-        });
 
+                if game.game_over {
+                    game.draw_game_over(context, graphics);
+                    if let Some(game_over_time) = game.game_over_time {
+                        if game_over_time.elapsed().as_secs() >= 5 {
+                            // game = Game::new();
+                            game.game_over = false;
+                        }
+                    }
+                }
+            }
+
+        });
     }
 }
