@@ -47,7 +47,6 @@ impl Game {
     }
 
     fn draw_game_over(&self, context: Context, graphics: &mut G2d) {
-        println!("Game Over");
     }
 }
 
@@ -86,6 +85,7 @@ impl Snake {
     }
 
     fn update(&mut self, dt: f64, window_width: f64, window_height: f64) {
+
         self.accumulated_dt += dt;
 
         if self.accumulated_dt >= self.speed {
@@ -119,6 +119,7 @@ impl Snake {
             self.body.insert(0, (new_head_x, new_head_y));
             self.body.pop();
         }
+            
     }
 
     fn check_collision_with_food(&mut self, food: &mut Food) {
@@ -204,18 +205,21 @@ fn main() {
         }
 
         if let Some(update_args) = event.update_args() {
-            game.snake.update(update_args.dt, WINDOW_WIDTH, WINDOW_HEIGHT);
-            game.snake.check_collision_with_food(&mut game.food);
-            if game.snake.check_collision_with_self() {
-                // Reiniciar el juego
-                /*
-                game = Game {
-                    snake: Snake::new(),
-                    food: Food::new(),
-                };
-                */
-                game.game_over = true;
-                game.game_over_time = Some(Instant::now());
+            if !game.game_over {
+                game.snake.update(update_args.dt, WINDOW_WIDTH, WINDOW_HEIGHT);
+                game.snake.check_collision_with_food(&mut game.food);
+                if game.snake.check_collision_with_self() {
+                    // Reiniciar el juego
+                    /*
+                    game = Game {
+                        snake: Snake::new(),
+                        food: Food::new(),
+                    };
+                    */
+                    game.game_over = true;
+                    game.game_over_time = Some(Instant::now());
+                    println!("Game Over");
+                }
             }
         }
 
@@ -228,6 +232,16 @@ fn main() {
                 context.transform,
                 graphics,
             );
+
+            if game.game_over {
+                game.draw_game_over(context, graphics);
+                if let Some(game_over_time) = game.game_over_time {
+                    if game_over_time.elapsed().as_secs() >= 5 {
+                        game = Game::new();
+                        game.game_over = false;
+                    }
+                }
+            }
 
             for (index, &(x, y)) in game.snake.body.iter().enumerate() {
                 let color = if index == 0 {
@@ -254,16 +268,6 @@ fn main() {
                         context.transform,
                         graphics,
                     );
-                }
-
-                if game.game_over {
-                    game.draw_game_over(context, graphics);
-                    if let Some(game_over_time) = game.game_over_time {
-                        if game_over_time.elapsed().as_secs() >= 5 {
-                            // game = Game::new();
-                            game.game_over = false;
-                        }
-                    }
                 }
             }
 
