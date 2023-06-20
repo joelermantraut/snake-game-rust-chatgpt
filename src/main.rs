@@ -9,6 +9,7 @@ const GRID_SIZE: f64 = 20.0;
 const WINDOW_WIDTH: f64 = 640.0;
 const WINDOW_HEIGHT: f64 = 480.0;
 const INITIAL_SNAKE_SPEED: f64 = 0.1;  // Velocidad de la serpiente
+const GAME_OVER_TIMEOUT: u64 = 3;
 
 struct Game {
     snake: Snake,
@@ -236,7 +237,7 @@ fn main() {
             if game.game_over {
                 game.draw_game_over(context, graphics);
                 if let Some(game_over_time) = game.game_over_time {
-                    if game_over_time.elapsed().as_secs() >= 5 {
+                    if game_over_time.elapsed().as_secs() >= GAME_OVER_TIMEOUT {
                         game = Game::new();
                         game.game_over = false;
                     }
@@ -263,7 +264,7 @@ fn main() {
                     let eye_offset_y = GRID_SIZE * 0.25;
         
                     ellipse(
-                        [0.0, 0.0, 0.0, 1.0], // Color negro para el ojo
+                        [1.0, 1.0, 1.0, 1.0], // Color negro para el ojo
                         [x + eye_offset_x, y + eye_offset_y, eye_size, eye_size],
                         context.transform,
                         graphics,
