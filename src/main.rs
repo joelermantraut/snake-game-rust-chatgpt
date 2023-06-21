@@ -47,7 +47,11 @@ impl Game {
         }
     }
 
-    fn draw_game_over(&self, context: Context, graphics: &mut G2d) {
+    fn restart(&mut self) {
+        self.snake = Snake::new();
+        self.food = Food::new();
+        self.game_over = false;
+        self.game_over_time = None;
     }
 }
 
@@ -153,13 +157,6 @@ impl Snake {
         return false;
     }
 
-    fn restart_game(&mut self) {
-        self.body = vec![(0.0, 0.0)];
-        self.direction = Direction::Right;
-        self.speed = INITIAL_SNAKE_SPEED;
-        self.accumulated_dt = 0.0;
-    }
-
     fn grow(&mut self) {
         let last_segment_index = self.body.len() - 1;
         let (last_x, last_y) = self.body[last_segment_index];
@@ -193,6 +190,7 @@ fn main() {
     let mut game = Game::new();
 
     game.food.respawn(WINDOW_WIDTH, WINDOW_HEIGHT);
+    game.snake.grow();
 
     while let Some(event) = window.next() {
         if let Some(Button::Keyboard(key)) = event.press_args() {
@@ -211,12 +209,6 @@ fn main() {
                 game.snake.check_collision_with_food(&mut game.food);
                 if game.snake.check_collision_with_self() {
                     // Reiniciar el juego
-                    /*
-                    game = Game {
-                        snake: Snake::new(),
-                        food: Food::new(),
-                    };
-                    */
                     game.game_over = true;
                     game.game_over_time = Some(Instant::now());
                     println!("Game Over");
@@ -235,11 +227,9 @@ fn main() {
             );
 
             if game.game_over {
-                game.draw_game_over(context, graphics);
                 if let Some(game_over_time) = game.game_over_time {
                     if game_over_time.elapsed().as_secs() >= GAME_OVER_TIMEOUT {
-                        game = Game::new();
-                        game.game_over = false;
+                        game.restart();
                     }
                 }
             }
@@ -264,7 +254,7 @@ fn main() {
                     let eye_offset_y = GRID_SIZE * 0.25;
         
                     ellipse(
-                        [1.0, 1.0, 1.0, 1.0], // Color negro para el ojo
+                        [1.0, 1.0, 1.0, 1.0], // Color blanco para el ojo
                         [x + eye_offset_x, y + eye_offset_y, eye_size, eye_size],
                         context.transform,
                         graphics,
